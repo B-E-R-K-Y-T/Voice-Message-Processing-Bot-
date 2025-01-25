@@ -58,9 +58,6 @@ def handle_voice(message: Message):
     logging.info(f"Received voice message from {message.from_user.id}")
 
     file_info = bot.get_file(message.voice.file_id)
-    bot.reply_to(
-        message=message, text="Ваш файл взят в работу! Пожалуйста, подождите..."
-    )
 
     if file_info.file_size > MAX_FILE_SIZE:
         bot.reply_to(
@@ -69,6 +66,10 @@ def handle_voice(message: Message):
         )
         logging.info(f"File too big: {file_info.file_path}")
         return
+
+    bot.reply_to(
+        message=message, text="Ваш файл взят в работу! Пожалуйста, подождите..."
+    )
 
     file_process_coro = put_file_to_convert(file_info, message)
 
