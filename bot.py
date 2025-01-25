@@ -7,7 +7,6 @@ from io import BytesIO
 from queue import Empty
 
 import telebot
-from telebot.apihelper import ApiTelegramException
 from telebot.types import Message
 
 from config import (
