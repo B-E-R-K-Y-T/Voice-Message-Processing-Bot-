@@ -15,7 +15,7 @@ from config import (
     stop_app_lock,
     StopApp,
     MAX_PROCESS_FILES,
-    files_queue,
+    files_convert_queue,
     bot_lock,
     MAX_FILE_SIZE,
 )
@@ -59,10 +59,15 @@ def handle_voice(message: Message):
 
     file_info = bot.get_file(message.voice.file_id)
 
+    answer_message = bot.reply_to(
+        message=message, text="Запрос принят. Пожалуйста, подождите..."
+    )
+
     if file_info.file_size > MAX_FILE_SIZE:
-        bot.reply_to(
-            message=message,
+        bot.edit_message_text(
             text=f"Ваш файл слишком большой! Пожалуйста, отправьте файл меньше {MAX_FILE_SIZE / 1024 ** 2} МБ.",
+            chat_id=answer_message.chat.id,
+            message_id=answer_message.message_id
         )
         logging.info(f"File too big: {file_info.file_path}")
         return
@@ -75,10 +80,12 @@ def handle_voice(message: Message):
             break
         except QueueFull:
             logging.warning("Queue is full, scheduling file for later.")
-            time.sleep(1)
+            time.sleep(2)
 
-    bot.reply_to(
-        message=message, text="Ваш файл взят в работу! Пожалуйста, подождите..."
+    bot.edit_message_text(
+        text="Ваш файл взят в работу! Пожалуйста, подождите...",
+        chat_id=answer_message.chat.id,
+        message_id=answer_message.message_id
     )
 
     logging.info(f"File scheduled for conversion: {file_info.file_path}")
@@ -89,13 +96,13 @@ def file_converter():
         with stop_app_lock:
             if StopApp.stop_app:
                 logging.info("Stopping file converter thread.")
-                break
+                return
 
         time.sleep(1)
 
         for _ in range(MAX_PROCESS_FILES):
             try:
-                file, message = files_queue.get()
+                file, message = files_convert_queue.get_nowait()
             except Empty:
                 continue
 
@@ -131,17 +138,20 @@ async def main():
     bot_thread.start()
     logging.info("Bot polling started.")
 
-    await task_runner
+    try:
+        await task_runner
+    except asyncio.CancelledError:
+        logging.info("Task runner cancelled.")
 
-    bot_thread.join()
+    bot_thread.join(timeout=1)
+    logging.info("Bot stopped.")
 
     with stop_app_lock:
         StopApp.stop_app = True
 
-    file_converter_thread.join()
+    file_converter_thread.join(timeout=1)
 
-    logging.info("Bot stopped.")
-
+    logging.info("File converter thread stopped.")
 
 if __name__ == "__main__":
     asyncio.run(main())

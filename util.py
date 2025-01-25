@@ -6,7 +6,7 @@ import logging
 
 from telebot.types import File, Message
 
-from config import StopApp, stop_app_lock, file_schedule_tasks, files_queue
+from config import StopApp, stop_app_lock, file_schedule_tasks, files_convert_queue
 
 # Настройка логирования
 logging.basicConfig(
@@ -26,7 +26,7 @@ async def file_task_runner():
         with stop_app_lock:
             if StopApp.stop_app:
                 logging.info("file_task_runner stopping.")
-                break
+                return
 
         await asyncio.sleep(1)
 
@@ -49,10 +49,10 @@ async def put_file_to_convert(file_info: File, message: Message):
         with stop_app_lock:
             if StopApp.stop_app:
                 logging.info("put_file_to_convert stopping.")
-                break
+                return
 
         try:
-            files_queue.put(ChatData(file=file_info, message=message))
+            files_convert_queue.put(ChatData(file=file_info, message=message))
             logging.info(
                 f"File added to queue for conversion: {file_info.file_path} from message: {message.message_id}"
             )
