@@ -15,8 +15,8 @@
 
 1. **Клонирование репозитория**
    ```bash
-   git clone https://github.com/yourusername/voice-bot.git
-   cd voice-bot
+   git clone git@github.com:B-E-R-K-Y-T/Voice-Message-Processing-Bot-.git
+   cd Voice-Message-Processing-Bot-
    ```
 
 2. **Создание виртуального окружения (опционально)**
