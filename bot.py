@@ -3,6 +3,7 @@ import threading
 import time
 import logging
 from asyncio import QueueFull
+from copy import copy
 from io import BytesIO
 from queue import Empty
 
@@ -17,10 +18,10 @@ from config import (
     MAX_PROCESS_FILES,
     files_convert_queue,
     bot_lock,
-    MAX_FILE_SIZE, LIMIT_MESSAGES, INTERVAL_LIMIT_MESSAGES,
+    MAX_FILE_SIZE, LIMIT_MESSAGES, INTERVAL_LIMIT_MESSAGES, MAX_SIZE_FILE_TO_TRANSCRIBE,
 )
 from middlewares.antiflood import AntiFloodMiddleware
-from util import put_file_to_convert, file_task_runner
+from util import put_file_to_convert, file_task_runner, transcribe_audio, convert_to_wav
 
 # Настройка логирования
 logging.basicConfig(
@@ -117,11 +118,22 @@ def file_converter():
             voice_file = BytesIO(downloaded_file)
             voice_file.seek(0)  # Перемещаем указатель в начало файла
 
+            transcript = "<Слишком большой размер файла для расшифровки>"
+
+            if file.file_size < MAX_SIZE_FILE_TO_TRANSCRIBE:
+                transcript = transcribe_audio(convert_to_wav(copy(voice_file)))
+
+            if len(transcript) > 700:
+                tail = "..."
+                transcript = transcript[:700 - len(tail)] + tail
+
+            caption = f"Голосовое сообщение от {message.from_user.first_name}\n\nРасшифровка: '{transcript}'"
+
             with bot_lock:
                 bot.send_audio(
                     chat_id=message.chat.id,
                     audio=voice_file,
-                    caption=f"Голосовое сообщение от {message.from_user.first_name}",
+                    caption=caption
                 )
 
             logging.info(f"File sent back to user: {message.chat.id}.")
