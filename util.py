@@ -28,7 +28,7 @@ async def file_task_runner():
                 logging.info("file_task_runner stopping.")
                 break
 
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(1)
 
         tasks = []
 
@@ -59,4 +59,4 @@ async def put_file_to_convert(file_info: File, message: Message):
             break
         except Full:
             logging.warning("Queue is full, waiting to retry...")
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(1)

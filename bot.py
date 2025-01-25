@@ -68,10 +68,6 @@ def handle_voice(message: Message):
         logging.info(f"File too big: {file_info.file_path}")
         return
 
-    bot.reply_to(
-        message=message, text="Ваш файл взят в работу! Пожалуйста, подождите..."
-    )
-
     file_process_coro = put_file_to_convert(file_info, message)
 
     while True:
@@ -81,6 +77,10 @@ def handle_voice(message: Message):
         except QueueFull:
             logging.warning("Queue is full, scheduling file for later.")
             time.sleep(1)
+
+    bot.reply_to(
+        message=message, text="Ваш файл взят в работу! Пожалуйста, подождите..."
+    )
 
     logging.info(f"File scheduled for conversion: {file_info.file_path}")
 
