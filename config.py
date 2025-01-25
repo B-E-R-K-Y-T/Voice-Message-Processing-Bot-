@@ -13,6 +13,8 @@ API_TOKEN = os.getenv("API_TOKEN")
 MAX_PROCESS_FILES = int(os.getenv("MAX_PROCESS_FILES"))
 MAX_SCHEDULE_PROCESS_FILES = int(os.getenv("MAX_SCHEDULE_PROCESS_FILES"))
 MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE")) * 1024 ** 2
+LIMIT_MESSAGES = int(os.getenv("LIMIT_MESSAGES"))
+INTERVAL_LIMIT_MESSAGES = int(os.getenv("INTERVAL_LIMIT_MESSAGES"))
 
 files_convert_queue = Queue(maxsize=MAX_PROCESS_FILES)
 file_schedule_tasks = AsyncQueue(maxsize=MAX_SCHEDULE_PROCESS_FILES)

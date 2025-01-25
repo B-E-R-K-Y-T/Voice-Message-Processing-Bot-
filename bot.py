@@ -17,8 +17,9 @@ from config import (
     MAX_PROCESS_FILES,
     files_convert_queue,
     bot_lock,
-    MAX_FILE_SIZE,
+    MAX_FILE_SIZE, LIMIT_MESSAGES, INTERVAL_LIMIT_MESSAGES,
 )
+from middlewares.antiflood import AntiFloodMiddleware
 from util import put_file_to_convert, file_task_runner
 
 # Настройка логирования
@@ -28,7 +29,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()],
 )
 
-bot = telebot.TeleBot(API_TOKEN)
+bot = telebot.TeleBot(API_TOKEN, use_class_middlewares=True)
 
 
 @bot.message_handler(commands=["start"])
@@ -134,6 +135,8 @@ async def main():
     task_runner = asyncio.create_task(file_task_runner())
     logging.info("Task runner started.")
 
+    bot.setup_middleware(AntiFloodMiddleware(time_limit=INTERVAL_LIMIT_MESSAGES, message_limit=LIMIT_MESSAGES, bot=bot))
+
     bot_thread = threading.Thread(target=bot.polling)
     bot_thread.start()
     logging.info("Bot polling started.")
@@ -152,6 +155,7 @@ async def main():
     file_converter_thread.join(timeout=1)
 
     logging.info("File converter thread stopped.")
+    bot.stop_bot()
 
 if __name__ == "__main__":
     asyncio.run(main())
