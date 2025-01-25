@@ -8,6 +8,7 @@ class AntiFloodMiddleware(BaseMiddleware):
         self.message_limit = message_limit
         self.update_types = ['message']
         self.bot = bot
+        self.waiting_users = set()  # Множество для отслеживания пользователей, которые уже получили сообщение об ожидании
 
     def pre_process(self, message, data):
         user_id = message.from_user.id
@@ -24,15 +25,20 @@ class AntiFloodMiddleware(BaseMiddleware):
 
             # Проверка лимита по количеству сообщений
             if self.message_count[user_id] > self.message_limit:
-                self.bot.send_message(
-                    message.chat.id,
-                    f"Вы превысили лимит сообщений. Подождите {self.time_limit} секунд"
-                )
+                # Проверка, отправлялось ли уже сообщение об ожидании
+                if user_id not in self.waiting_users:
+                    self.bot.send_message(
+                        message.chat.id,
+                        f"Вы превысили лимит сообщений. Подождите {self.time_limit} секунд."
+                    )
+                    self.waiting_users.add(user_id)  # Добавляем пользователя в множество
                 return CancelUpdate()
+
         else:
-            # Если время истекло, сбрасываем счетчик
+            # Если время истекло, сбрасываем счетчик и состояние ожидания
             self.last_time[user_id] = message.date
             self.message_count[user_id] = 1
+            self.waiting_users.discard(user_id)  # Убираем пользователя из множества, так как он может снова писать
 
     def post_process(self, message, data, exception):
         pass

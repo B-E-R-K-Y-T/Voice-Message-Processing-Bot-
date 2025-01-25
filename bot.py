@@ -155,7 +155,6 @@ async def main():
     file_converter_thread.join(timeout=1)
 
     logging.info("File converter thread stopped.")
-    bot.stop_bot()
 
 if __name__ == "__main__":
     asyncio.run(main())
