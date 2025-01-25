@@ -32,6 +32,7 @@ class AntiFloodMiddleware(BaseMiddleware):
                         f"Вы превысили лимит сообщений. Подождите {self.time_limit} секунд."
                     )
                     self.waiting_users.add(user_id)  # Добавляем пользователя в множество
+
                 return CancelUpdate()
 
         else:
