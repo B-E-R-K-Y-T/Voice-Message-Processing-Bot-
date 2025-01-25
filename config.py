@@ -19,5 +19,6 @@ file_schedule_tasks = AsyncQueue()
 bot_lock = threading.Lock()
 stop_app_lock = threading.Lock()
 
+
 class StopApp:
     stop_app = False
