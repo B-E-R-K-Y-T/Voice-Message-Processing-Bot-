@@ -7,6 +7,7 @@ from io import BytesIO
 from queue import Empty
 
 import telebot
+from telebot.apihelper import ApiTelegramException
 from telebot.types import Message
 
 from config import (
@@ -91,7 +92,7 @@ def file_converter():
                 logging.info("Stopping file converter thread.")
                 break
 
-        time.sleep(0.1)
+        time.sleep(1)
 
         for _ in range(MAX_PROCESS_FILES):
             try:
@@ -115,6 +116,7 @@ def file_converter():
                     audio=voice_file,
                     caption=f"Голосовое сообщение от {message.from_user.first_name}",
                 )
+
             logging.info(f"File sent back to user: {message.chat.id}.")
 
 
