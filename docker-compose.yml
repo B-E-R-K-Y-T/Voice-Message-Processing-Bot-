@@ -1,0 +1,16 @@
+services:
+  voice-bot:
+    build:
+      context: .
+    container_name: voice-message-processing-bot
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    command: >
+      python main.py
